@@ -6,6 +6,7 @@ import (
 )
 
 const ellipsis = "\u2026"
+const gopher = "\ue724"
 
 type pathSegment struct {
 	path     string
@@ -17,8 +18,19 @@ type pathSegment struct {
 func cwdToPathSegments(cwd string) []pathSegment {
 	pathSegments := make([]pathSegment, 0)
 
+	skip := 0
+	joined := false
+	gopath, _ := os.LookupEnv("GOPATH")
 	home, _ := os.LookupEnv("HOME")
-	if strings.HasPrefix(cwd, home) {
+	if gopath != "" && strings.HasPrefix(cwd, gopath+"/src") {
+		pathSegments = append(pathSegments, pathSegment{
+			path: gopher,
+			home: true,
+		})
+		cwd = cwd[len(gopath+"/src"):]
+		skip = 2
+		joined = true
+	} else if strings.HasPrefix(cwd, home) {
 		pathSegments = append(pathSegments, pathSegment{
 			path: "~",
 			home: true,
@@ -37,10 +49,22 @@ func cwdToPathSegments(cwd string) []pathSegment {
 		names = names[1:]
 	}
 
-	for _, name := range names {
-		pathSegments = append(pathSegments, pathSegment{
-			path: name,
-		})
+	if skip < len(names) {
+		names = names[skip:]
+	}
+
+	if 0 < len(names) {
+		if joined {
+			pathSegments = append(pathSegments, pathSegment{
+				path: strings.Join(names, "/"),
+			})
+		} else {
+			for _, name := range names {
+				pathSegments = append(pathSegments, pathSegment{
+					path: name,
+				})
+			}
+		}
 	}
 
 	return pathSegments
