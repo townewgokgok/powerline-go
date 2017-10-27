@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 	"strings"
+	"path/filepath"
 )
 
 const ellipsis = "\u2026"
-const gopher = "\ue724"
 
 type pathSegment struct {
 	path     string
@@ -15,8 +15,24 @@ type pathSegment struct {
 	ellipsis bool
 }
 
+func exists(elem ...string) bool {
+	_, err := os.Stat(filepath.Join(elem...))
+	return err == nil
+}
+
+func searchGitRoot(cwd string) (string, bool) {
+	for !(cwd == "/" || cwd == "") {
+		if exists(cwd, ".git") {
+			return cwd, true
+		}
+		cwd = filepath.Dir(cwd)
+	}
+	return "", false
+}
+
 func cwdToPathSegments(cwd string) []pathSegment {
 	pathSegments := make([]pathSegment, 0)
+	gitRoot, _ := searchGitRoot(cwd)
 
 	skip := 0
 	joined := false
@@ -24,11 +40,30 @@ func cwdToPathSegments(cwd string) []pathSegment {
 	home, _ := os.LookupEnv("HOME")
 	if gopath != "" && strings.HasPrefix(cwd, gopath+"/src") {
 		pathSegments = append(pathSegments, pathSegment{
-			path: gopher,
+			path: "\ue724", // go
 			home: true,
 		})
 		cwd = cwd[len(gopath+"/src"):]
 		skip = 2
+		joined = true
+	} else if gitRoot != "" {
+		icon := "\uf113" // github
+		if exists(gitRoot, "package.json") {
+			icon = "\ue718" // javascript
+		} else if exists(gitRoot, "composer.json") {
+			icon = "\ue608" // php
+		} else if exists(gitRoot, "Gemfile") {
+			icon = "\ue791" // ruby
+		} else if exists(gitRoot, "cpanfile") {
+			icon = "\ue769" // perl
+		} else if exists(gitRoot, "__pycache__") {
+			icon = "\ue606" // python
+		}
+		pathSegments = append(pathSegments, pathSegment{
+			path: icon,
+			home: true,
+		})
+		cwd = cwd[len(filepath.Dir(gitRoot)):]
 		joined = true
 	} else if strings.HasPrefix(cwd, home) {
 		pathSegments = append(pathSegments, pathSegment{
