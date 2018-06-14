@@ -86,6 +86,8 @@ func cwdToPathSegments(cwd string) []pathSegment {
 
 	if skip < len(names) {
 		names = names[skip:]
+	} else {
+		names = names[len(names)-1:len(names)]
 	}
 
 	if 0 < len(names) {
