@@ -40,24 +40,24 @@ func cwdToPathSegments(cwd string) []pathSegment {
 	home, _ := os.LookupEnv("HOME")
 	if gopath != "" && strings.HasPrefix(cwd, gopath+"/src") {
 		pathSegments = append(pathSegments, pathSegment{
-			path: "\ue724", // go
+			path: "🐭", // go
 			home: true,
 		})
 		cwd = cwd[len(gopath+"/src"):]
 		skip = 2
 		joined = true
 	} else if gitRoot != "" {
-		icon := "\uf113" // github
+		icon := "Git" // github
 		if exists(gitRoot, "package.json") {
-			icon = "\ue718" // javascript
+			icon = "JS" // javascript
 		} else if exists(gitRoot, "composer.json") {
-			icon = "\ue608" // php
+			icon = "🐘" // php
 		} else if exists(gitRoot, "Gemfile") {
-			icon = "\ue791" // ruby
+			icon = "💎" // ruby
 		} else if exists(gitRoot, "cpanfile") {
-			icon = "\ue769" // perl
+			icon = "🐪" // perl
 		} else if exists(gitRoot, "__pycache__") {
-			icon = "\ue606" // python
+			icon = "Py" // python
 		}
 		pathSegments = append(pathSegments, pathSegment{
 			path: icon,
