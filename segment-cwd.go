@@ -48,7 +48,9 @@ func cwdToPathSegments(cwd string) []pathSegment {
 		joined = true
 	} else if gitRoot != "" {
 		icon := "Git" // github
-		if exists(gitRoot, "package.json") {
+		if exists(gitRoot, "go.mod") {
+			icon = "🐭" // go
+		} else if exists(gitRoot, "package.json") {
 			icon = "JS" // javascript
 		} else if exists(gitRoot, "composer.json") {
 			icon = "🐘" // php
